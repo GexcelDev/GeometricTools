@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <vector>
 #include <thread>
+#include <future>
 
 // The algorithm for least-squares fitting of a point set by a cylinder is
 // described in
@@ -452,10 +453,10 @@ namespace gte
             }
             local[mNumThreads - 1].jmax = mNumPhiSamples + 1;
 
-            std::vector<std::thread> process(mNumThreads);
+            std::vector<std::future<void>> process(mNumThreads);
             for (size_t t = 0; t < mNumThreads; ++t)
             {
-                process[t] = std::thread
+                process[t] = std::async
                 (
                     [this, t, iMultiplier, jMultiplier, &local]()
                 {
@@ -490,7 +491,7 @@ namespace gte
 
             for (size_t t = 0; t < mNumThreads; ++t)
             {
-                process[t].join();
+                process[t].wait();
 
                 if (local[t].error < minError)
                 {
